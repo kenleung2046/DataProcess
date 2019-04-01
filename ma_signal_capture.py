@@ -1,0 +1,746 @@
+from pymongo import MongoClient, ASCENDING, UpdateOne
+from pandas import DataFrame
+from datetime import datetime
+import traceback
+
+
+_database_ip_ = '127.0.0.1'
+_database_port_ = 27017
+_authentication_ = 'A-Shares'
+_user_ = 'manager'
+_pwd_ = 'Kl!2#4%6'
+_database_name_ = 'A-Shares'
+_client = MongoClient(_database_ip_, _database_port_)
+db_auth = _client[_authentication_]
+db_auth.authenticate(_user_, _pwd_)
+db = _client[_database_name_]
+
+
+def get_ma5_signal(begin_date, end_date):
+    code_cursor = db.Stock_Basic.find(
+        {'list_status': 'L'},
+        projection={'ts_code': True, '_id': False}
+    )
+    codes = [code['ts_code'] for code in code_cursor]
+
+    inserted_amount = 0
+    updated_amount = 0
+
+    _n_ = 5
+    _collection_name_ = 'Signal_MA_5'
+
+    for code in codes:
+        try:
+            quotation_cursor = db.Quotation_Daily_hfq.find(
+                {'ts_code': code, 'trade_date': {'$gte': begin_date, '$lte': end_date}, 'is_trading': True},
+                sort=[('trade_date', ASCENDING)],
+                projection={'trade_date': True, 'close': True, '_id': False}
+            )
+
+            df_quotation = DataFrame([quotation for quotation in quotation_cursor])
+
+            df_quotation.set_index(['trade_date'], 1, inplace=True)
+
+            df_quotation['ma'] = df_quotation['close'].rolling(_n_).mean()
+
+            df_quotation['differ'] = df_quotation['close'] - df_quotation['ma']
+
+            df_quotation['differ_prev'] = df_quotation['differ'].shift(1)
+
+            df_quotation['up_break'] = (df_quotation['differ_prev'] <= 0) & (df_quotation['differ'] > 0)
+
+            df_quotation['down_break'] = (df_quotation['differ_prev'] >= 0) & (df_quotation['differ'] < 0)
+
+            df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
+
+            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
+
+            update_requests = []
+            for date in df_quotation.index:
+                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                update_requests.append(
+                    UpdateOne(
+                        {'ts_code': code, 'trade_date': date},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        upsert=True)
+                )
+
+            if len(update_requests) > 0:
+                update_result = db[_collection_name_].bulk_write(
+                    update_requests,
+                    ordered=False
+                )
+
+                print(
+                    'Compute and save %s Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d' %
+                    (code, begin_date, end_date, _collection_name_, datetime.now(),
+                     update_result.upserted_count, update_result.modified_count),
+                    flush=True
+                )
+
+                inserted_amount = inserted_amount + update_result.upserted_count
+                updated_amount = updated_amount + update_result.modified_count
+
+        except:
+            print(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code),
+                flush=True
+            )
+
+            _log = open(
+                "/root/DataProcess/log/log_save_compute_"
+                + _collection_name_ + ".txt", 'r+'
+            )
+            content = _log.read()
+            _log.seek(0, 0)
+            _log.write(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s \n \n' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code) + content
+            )
+            traceback.print_exc(file=_log)
+            _log.flush()
+            _log.close()
+
+    print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
+    _log = open(
+        "/root/DataProcess/log/log_save_compute_"
+        + _collection_name_ + ".txt", 'r+'
+    )
+    content = _log.read()
+    _log.seek(0, 0)
+    _log.write(
+        'Compute and save Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d \n \n' %
+        (begin_date, end_date, _collection_name_, datetime.now(),
+         inserted_amount, updated_amount) + content
+    )
+    _log.flush()
+    _log.close()
+
+
+def get_ma10_signal(begin_date, end_date):
+    code_cursor = db.Stock_Basic.find(
+        {'list_status': 'L'},
+        projection={'ts_code': True, '_id': False}
+    )
+    codes = [code['ts_code'] for code in code_cursor]
+
+    inserted_amount = 0
+    updated_amount = 0
+
+    _n_ = 10
+    _collection_name_ = 'Signal_MA_10'
+
+    for code in codes:
+        try:
+            quotation_cursor = db.Quotation_Daily_hfq.find(
+                {'ts_code': code, 'trade_date': {'$gte': begin_date, '$lte': end_date}, 'is_trading': True},
+                sort=[('trade_date', ASCENDING)],
+                projection={'trade_date': True, 'close': True, '_id': False}
+            )
+
+            df_quotation = DataFrame([quotation for quotation in quotation_cursor])
+
+            df_quotation.set_index(['trade_date'], 1, inplace=True)
+
+            df_quotation['ma'] = df_quotation['close'].rolling(_n_).mean()
+
+            df_quotation['differ'] = df_quotation['close'] - df_quotation['ma']
+
+            df_quotation['differ_prev'] = df_quotation['differ'].shift(1)
+
+            df_quotation['up_break'] = (df_quotation['differ_prev'] <= 0) & (df_quotation['differ'] > 0)
+
+            df_quotation['down_break'] = (df_quotation['differ_prev'] >= 0) & (df_quotation['differ'] < 0)
+
+            df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
+
+            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
+
+            update_requests = []
+            for date in df_quotation.index:
+                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                update_requests.append(
+                    UpdateOne(
+                        {'ts_code': code, 'trade_date': date},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        upsert=True)
+                )
+
+            if len(update_requests) > 0:
+                update_result = db[_collection_name_].bulk_write(
+                    update_requests,
+                    ordered=False
+                )
+
+                print(
+                    'Compute and save %s Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d' %
+                    (code, begin_date, end_date, _collection_name_, datetime.now(),
+                     update_result.upserted_count, update_result.modified_count),
+                    flush=True
+                )
+
+                inserted_amount = inserted_amount + update_result.upserted_count
+                updated_amount = updated_amount + update_result.modified_count
+
+        except:
+            print(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code),
+                flush=True
+            )
+
+            _log = open(
+                "/root/DataProcess/log/log_save_compute_"
+                + _collection_name_ + ".txt", 'r+'
+            )
+            content = _log.read()
+            _log.seek(0, 0)
+            _log.write(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s \n \n' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code) + content
+            )
+            traceback.print_exc(file=_log)
+            _log.flush()
+            _log.close()
+
+    print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
+    _log = open(
+        "/root/DataProcess/log/log_save_compute_"
+        + _collection_name_ + ".txt", 'r+'
+    )
+    content = _log.read()
+    _log.seek(0, 0)
+    _log.write(
+        'Compute and save Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d \n \n' %
+        (begin_date, end_date, _collection_name_, datetime.now(),
+         inserted_amount, updated_amount) + content
+    )
+    _log.flush()
+    _log.close()
+
+
+def get_ma20_signal(begin_date, end_date):
+    code_cursor = db.Stock_Basic.find(
+        {'list_status': 'L'},
+        projection={'ts_code': True, '_id': False}
+    )
+    codes = [code['ts_code'] for code in code_cursor]
+
+    inserted_amount = 0
+    updated_amount = 0
+
+    _n_ = 20
+    _collection_name_ = 'Signal_MA_20'
+
+    for code in codes:
+        try:
+            quotation_cursor = db.Quotation_Daily_hfq.find(
+                {'ts_code': code, 'trade_date': {'$gte': begin_date, '$lte': end_date}, 'is_trading': True},
+                sort=[('trade_date', ASCENDING)],
+                projection={'trade_date': True, 'close': True, '_id': False}
+            )
+
+            df_quotation = DataFrame([quotation for quotation in quotation_cursor])
+
+            df_quotation.set_index(['trade_date'], 1, inplace=True)
+
+            df_quotation['ma'] = df_quotation['close'].rolling(_n_).mean()
+
+            df_quotation['differ'] = df_quotation['close'] - df_quotation['ma']
+
+            df_quotation['differ_prev'] = df_quotation['differ'].shift(1)
+
+            df_quotation['up_break'] = (df_quotation['differ_prev'] <= 0) & (df_quotation['differ'] > 0)
+
+            df_quotation['down_break'] = (df_quotation['differ_prev'] >= 0) & (df_quotation['differ'] < 0)
+
+            df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
+
+            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
+
+            update_requests = []
+            for date in df_quotation.index:
+                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                update_requests.append(
+                    UpdateOne(
+                        {'ts_code': code, 'trade_date': date},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        upsert=True)
+                )
+
+            if len(update_requests) > 0:
+                update_result = db[_collection_name_].bulk_write(
+                    update_requests,
+                    ordered=False
+                )
+
+                print(
+                    'Compute and save %s Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d' %
+                    (code, begin_date, end_date, _collection_name_, datetime.now(),
+                     update_result.upserted_count, update_result.modified_count),
+                    flush=True
+                )
+
+                inserted_amount = inserted_amount + update_result.upserted_count
+                updated_amount = updated_amount + update_result.modified_count
+
+        except:
+            print(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code),
+                flush=True
+            )
+
+            _log = open(
+                "/root/DataProcess/log/log_save_compute_"
+                + _collection_name_ + ".txt", 'r+'
+            )
+            content = _log.read()
+            _log.seek(0, 0)
+            _log.write(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s \n \n' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code) + content
+            )
+            traceback.print_exc(file=_log)
+            _log.flush()
+            _log.close()
+
+    print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
+    _log = open(
+        "/root/DataProcess/log/log_save_compute_"
+        + _collection_name_ + ".txt", 'r+'
+    )
+    content = _log.read()
+    _log.seek(0, 0)
+    _log.write(
+        'Compute and save Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d \n \n' %
+        (begin_date, end_date, _collection_name_, datetime.now(),
+         inserted_amount, updated_amount) + content
+    )
+    _log.flush()
+    _log.close()
+
+
+def get_ma30_signal(begin_date, end_date):
+    code_cursor = db.Stock_Basic.find(
+        {'list_status': 'L'},
+        projection={'ts_code': True, '_id': False}
+    )
+    codes = [code['ts_code'] for code in code_cursor]
+
+    inserted_amount = 0
+    updated_amount = 0
+
+    _n_ = 30
+    _collection_name_ = 'Signal_MA_30'
+
+    for code in codes:
+        try:
+            quotation_cursor = db.Quotation_Daily_hfq.find(
+                {'ts_code': code, 'trade_date': {'$gte': begin_date, '$lte': end_date}, 'is_trading': True},
+                sort=[('trade_date', ASCENDING)],
+                projection={'trade_date': True, 'close': True, '_id': False}
+            )
+
+            df_quotation = DataFrame([quotation for quotation in quotation_cursor])
+
+            df_quotation.set_index(['trade_date'], 1, inplace=True)
+
+            df_quotation['ma'] = df_quotation['close'].rolling(_n_).mean()
+
+            df_quotation['differ'] = df_quotation['close'] - df_quotation['ma']
+
+            df_quotation['differ_prev'] = df_quotation['differ'].shift(1)
+
+            df_quotation['up_break'] = (df_quotation['differ_prev'] <= 0) & (df_quotation['differ'] > 0)
+
+            df_quotation['down_break'] = (df_quotation['differ_prev'] >= 0) & (df_quotation['differ'] < 0)
+
+            df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
+
+            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
+
+            update_requests = []
+            for date in df_quotation.index:
+                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                update_requests.append(
+                    UpdateOne(
+                        {'ts_code': code, 'trade_date': date},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        upsert=True)
+                )
+
+            if len(update_requests) > 0:
+                update_result = db[_collection_name_].bulk_write(
+                    update_requests,
+                    ordered=False
+                )
+
+                print(
+                    'Compute and save %s Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d' %
+                    (code, begin_date, end_date, _collection_name_, datetime.now(),
+                     update_result.upserted_count, update_result.modified_count),
+                    flush=True
+                )
+
+                inserted_amount = inserted_amount + update_result.upserted_count
+                updated_amount = updated_amount + update_result.modified_count
+
+        except:
+            print(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code),
+                flush=True
+            )
+
+            _log = open(
+                "/root/DataProcess/log/log_save_compute_"
+                + _collection_name_ + ".txt", 'r+'
+            )
+            content = _log.read()
+            _log.seek(0, 0)
+            _log.write(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s \n \n' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code) + content
+            )
+            traceback.print_exc(file=_log)
+            _log.flush()
+            _log.close()
+
+    print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
+    _log = open(
+        "/root/DataProcess/log/log_save_compute_"
+        + _collection_name_ + ".txt", 'r+'
+    )
+    content = _log.read()
+    _log.seek(0, 0)
+    _log.write(
+        'Compute and save Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d \n \n' %
+        (begin_date, end_date, _collection_name_, datetime.now(),
+         inserted_amount, updated_amount) + content
+    )
+    _log.flush()
+    _log.close()
+
+
+def get_ma60_signal(begin_date, end_date):
+    code_cursor = db.Stock_Basic.find(
+        {'list_status': 'L'},
+        projection={'ts_code': True, '_id': False}
+    )
+    codes = [code['ts_code'] for code in code_cursor]
+
+    inserted_amount = 0
+    updated_amount = 0
+
+    _n_ = 60
+    _collection_name_ = 'Signal_MA_60'
+
+    for code in codes:
+        try:
+            quotation_cursor = db.Quotation_Daily_hfq.find(
+                {'ts_code': code, 'trade_date': {'$gte': begin_date, '$lte': end_date}, 'is_trading': True},
+                sort=[('trade_date', ASCENDING)],
+                projection={'trade_date': True, 'close': True, '_id': False}
+            )
+
+            df_quotation = DataFrame([quotation for quotation in quotation_cursor])
+
+            df_quotation.set_index(['trade_date'], 1, inplace=True)
+
+            df_quotation['ma'] = df_quotation['close'].rolling(_n_).mean()
+
+            df_quotation['differ'] = df_quotation['close'] - df_quotation['ma']
+
+            df_quotation['differ_prev'] = df_quotation['differ'].shift(1)
+
+            df_quotation['up_break'] = (df_quotation['differ_prev'] <= 0) & (df_quotation['differ'] > 0)
+
+            df_quotation['down_break'] = (df_quotation['differ_prev'] >= 0) & (df_quotation['differ'] < 0)
+
+            df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
+
+            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
+
+            update_requests = []
+            for date in df_quotation.index:
+                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                update_requests.append(
+                    UpdateOne(
+                        {'ts_code': code, 'trade_date': date},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        upsert=True)
+                )
+
+            if len(update_requests) > 0:
+                update_result = db[_collection_name_].bulk_write(
+                    update_requests,
+                    ordered=False
+                )
+
+                print(
+                    'Compute and save %s Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d' %
+                    (code, begin_date, end_date, _collection_name_, datetime.now(),
+                     update_result.upserted_count, update_result.modified_count),
+                    flush=True
+                )
+
+                inserted_amount = inserted_amount + update_result.upserted_count
+                updated_amount = updated_amount + update_result.modified_count
+
+        except:
+            print(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code),
+                flush=True
+            )
+
+            _log = open(
+                "/root/DataProcess/log/log_save_compute_"
+                + _collection_name_ + ".txt", 'r+'
+            )
+            content = _log.read()
+            _log.seek(0, 0)
+            _log.write(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s \n \n' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code) + content
+            )
+            traceback.print_exc(file=_log)
+            _log.flush()
+            _log.close()
+
+    print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
+    _log = open(
+        "/root/DataProcess/log/log_save_compute_"
+        + _collection_name_ + ".txt", 'r+'
+    )
+    content = _log.read()
+    _log.seek(0, 0)
+    _log.write(
+        'Compute and save Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d \n \n' %
+        (begin_date, end_date, _collection_name_, datetime.now(),
+         inserted_amount, updated_amount) + content
+    )
+    _log.flush()
+    _log.close()
+
+
+def get_ma120_signal(begin_date, end_date):
+    code_cursor = db.Stock_Basic.find(
+        {'list_status': 'L'},
+        projection={'ts_code': True, '_id': False}
+    )
+    codes = [code['ts_code'] for code in code_cursor]
+
+    inserted_amount = 0
+    updated_amount = 0
+
+    _n_ = 120
+    _collection_name_ = 'Signal_MA_120'
+
+    for code in codes:
+        try:
+            quotation_cursor = db.Quotation_Daily_hfq.find(
+                {'ts_code': code, 'trade_date': {'$gte': begin_date, '$lte': end_date}, 'is_trading': True},
+                sort=[('trade_date', ASCENDING)],
+                projection={'trade_date': True, 'close': True, '_id': False}
+            )
+
+            df_quotation = DataFrame([quotation for quotation in quotation_cursor])
+
+            df_quotation.set_index(['trade_date'], 1, inplace=True)
+
+            df_quotation['ma'] = df_quotation['close'].rolling(_n_).mean()
+
+            df_quotation['differ'] = df_quotation['close'] - df_quotation['ma']
+
+            df_quotation['differ_prev'] = df_quotation['differ'].shift(1)
+
+            df_quotation['up_break'] = (df_quotation['differ_prev'] <= 0) & (df_quotation['differ'] > 0)
+
+            df_quotation['down_break'] = (df_quotation['differ_prev'] >= 0) & (df_quotation['differ'] < 0)
+
+            df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
+
+            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
+
+            update_requests = []
+            for date in df_quotation.index:
+                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                update_requests.append(
+                    UpdateOne(
+                        {'ts_code': code, 'trade_date': date},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        upsert=True)
+                )
+
+            if len(update_requests) > 0:
+                update_result = db[_collection_name_].bulk_write(
+                    update_requests,
+                    ordered=False
+                )
+
+                print(
+                    'Compute and save %s Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d' %
+                    (code, begin_date, end_date, _collection_name_, datetime.now(),
+                     update_result.upserted_count, update_result.modified_count),
+                    flush=True
+                )
+
+                inserted_amount = inserted_amount + update_result.upserted_count
+                updated_amount = updated_amount + update_result.modified_count
+
+        except:
+            print(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code),
+                flush=True
+            )
+
+            _log = open(
+                "/root/DataProcess/log/log_save_compute_"
+                + _collection_name_ + ".txt", 'r+'
+            )
+            content = _log.read()
+            _log.seek(0, 0)
+            _log.write(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s \n \n' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code) + content
+            )
+            traceback.print_exc(file=_log)
+            _log.flush()
+            _log.close()
+
+    print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
+    _log = open(
+        "/root/DataProcess/log/log_save_compute_"
+        + _collection_name_ + ".txt", 'r+'
+    )
+    content = _log.read()
+    _log.seek(0, 0)
+    _log.write(
+        'Compute and save Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d \n \n' %
+        (begin_date, end_date, _collection_name_, datetime.now(),
+         inserted_amount, updated_amount) + content
+    )
+    _log.flush()
+    _log.close()
+
+
+def get_ma240_signal(begin_date, end_date):
+    code_cursor = db.Stock_Basic.find(
+        {'list_status': 'L'},
+        projection={'ts_code': True, '_id': False}
+    )
+    codes = [code['ts_code'] for code in code_cursor]
+
+    inserted_amount = 0
+    updated_amount = 0
+
+    _n_ = 240
+    _collection_name_ = 'Signal_MA_240'
+
+    for code in codes:
+        try:
+            quotation_cursor = db.Quotation_Daily_hfq.find(
+                {'ts_code': code, 'trade_date': {'$gte': begin_date, '$lte': end_date}, 'is_trading': True},
+                sort=[('trade_date', ASCENDING)],
+                projection={'trade_date': True, 'close': True, '_id': False}
+            )
+
+            df_quotation = DataFrame([quotation for quotation in quotation_cursor])
+
+            df_quotation.set_index(['trade_date'], 1, inplace=True)
+
+            df_quotation['ma'] = df_quotation['close'].rolling(_n_).mean()
+
+            df_quotation['differ'] = df_quotation['close'] - df_quotation['ma']
+
+            df_quotation['differ_prev'] = df_quotation['differ'].shift(1)
+
+            df_quotation['up_break'] = (df_quotation['differ_prev'] <= 0) & (df_quotation['differ'] > 0)
+
+            df_quotation['down_break'] = (df_quotation['differ_prev'] >= 0) & (df_quotation['differ'] < 0)
+
+            df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
+
+            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
+
+            update_requests = []
+            for date in df_quotation.index:
+                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                update_requests.append(
+                    UpdateOne(
+                        {'ts_code': code, 'trade_date': date},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        upsert=True)
+                )
+
+            if len(update_requests) > 0:
+                update_result = db[_collection_name_].bulk_write(
+                    update_requests,
+                    ordered=False
+                )
+
+                print(
+                    'Compute and save %s Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d' %
+                    (code, begin_date, end_date, _collection_name_, datetime.now(),
+                     update_result.upserted_count, update_result.modified_count),
+                    flush=True
+                )
+
+                inserted_amount = inserted_amount + update_result.upserted_count
+                updated_amount = updated_amount + update_result.modified_count
+
+        except:
+            print(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code),
+                flush=True
+            )
+
+            _log = open(
+                "/root/DataProcess/log/log_save_compute_"
+                + _collection_name_ + ".txt", 'r+'
+            )
+            content = _log.read()
+            _log.seek(0, 0)
+            _log.write(
+                'Error occurs when compute and save Ma signal from %s to %s, %s, %s, at position: %s \n \n' %
+                (begin_date, end_date, _collection_name_, datetime.now(), code) + content
+            )
+            traceback.print_exc(file=_log)
+            _log.flush()
+            _log.close()
+
+    print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
+    _log = open(
+        "/root/DataProcess/log/log_save_compute_"
+        + _collection_name_ + ".txt", 'r+'
+    )
+    content = _log.read()
+    _log.seek(0, 0)
+    _log.write(
+        'Compute and save Ma signal from %s to %s, %s, %s, inserted: %4d, modified: %4d \n \n' %
+        (begin_date, end_date, _collection_name_, datetime.now(),
+         inserted_amount, updated_amount) + content
+    )
+    _log.flush()
+    _log.close()
+
+
+if __name__ == '__main__':
+    get_ma5_signal('20050101', '20190320')
+    get_ma10_signal('20050101', '20190320')
+    get_ma20_signal('20050101', '20190320')
+    get_ma30_signal('20050101', '20190320')
+    get_ma60_signal('20050101', '20190320')
+    get_ma120_signal('20050101', '20190320')
+    get_ma240_signal('20050101', '20190320')
+
+
+
+
+
+
