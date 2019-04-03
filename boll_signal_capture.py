@@ -19,7 +19,8 @@ class BollSignal:
         
     def compute(self, begin_date, end_date):
         code_cursor = self.db.Stock_Basic.find(
-            {'list_status': 'L'},
+            {'list_status': 'L',
+             'list_date': {'$lte': end_date}},
             projection={'ts_code': True, '_id': False}
         )
         codes = [code['ts_code'] for code in code_cursor]

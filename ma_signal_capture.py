@@ -18,7 +18,8 @@ db = _client[_database_name_]
 
 def get_ma5_signal(begin_date, end_date):
     code_cursor = db.Stock_Basic.find(
-        {'list_status': 'L'},
+        {'list_status': 'L',
+         'list_date': {'$lte': end_date}},
         projection={'ts_code': True, '_id': False}
     )
     codes = [code['ts_code'] for code in code_cursor]
@@ -120,7 +121,8 @@ def get_ma5_signal(begin_date, end_date):
 
 def get_ma10_signal(begin_date, end_date):
     code_cursor = db.Stock_Basic.find(
-        {'list_status': 'L'},
+        {'list_status': 'L',
+         'list_date': {'$lte': end_date}},
         projection={'ts_code': True, '_id': False}
     )
     codes = [code['ts_code'] for code in code_cursor]
@@ -222,7 +224,8 @@ def get_ma10_signal(begin_date, end_date):
 
 def get_ma20_signal(begin_date, end_date):
     code_cursor = db.Stock_Basic.find(
-        {'list_status': 'L'},
+        {'list_status': 'L',
+         'list_date': {'$lte': end_date}},
         projection={'ts_code': True, '_id': False}
     )
     codes = [code['ts_code'] for code in code_cursor]
@@ -324,7 +327,8 @@ def get_ma20_signal(begin_date, end_date):
 
 def get_ma30_signal(begin_date, end_date):
     code_cursor = db.Stock_Basic.find(
-        {'list_status': 'L'},
+        {'list_status': 'L',
+         'list_date': {'$lte': end_date}},
         projection={'ts_code': True, '_id': False}
     )
     codes = [code['ts_code'] for code in code_cursor]
@@ -426,7 +430,8 @@ def get_ma30_signal(begin_date, end_date):
 
 def get_ma60_signal(begin_date, end_date):
     code_cursor = db.Stock_Basic.find(
-        {'list_status': 'L'},
+        {'list_status': 'L',
+         'list_date': {'$lte': end_date}},
         projection={'ts_code': True, '_id': False}
     )
     codes = [code['ts_code'] for code in code_cursor]
@@ -528,7 +533,8 @@ def get_ma60_signal(begin_date, end_date):
 
 def get_ma120_signal(begin_date, end_date):
     code_cursor = db.Stock_Basic.find(
-        {'list_status': 'L'},
+        {'list_status': 'L',
+         'list_date': {'$lte': end_date}},
         projection={'ts_code': True, '_id': False}
     )
     codes = [code['ts_code'] for code in code_cursor]
@@ -630,7 +636,8 @@ def get_ma120_signal(begin_date, end_date):
 
 def get_ma240_signal(begin_date, end_date):
     code_cursor = db.Stock_Basic.find(
-        {'list_status': 'L'},
+        {'list_status': 'L',
+         'list_date': {'$lte': end_date}},
         projection={'ts_code': True, '_id': False}
     )
     codes = [code['ts_code'] for code in code_cursor]
