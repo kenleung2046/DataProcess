@@ -19,7 +19,7 @@ db_auth.authenticate(_user_, _pwd_)
 db = _client[_database_name_]
 
 
-def crawl_basic(list_status=None):
+def crawl_basic(list_status=None, update_date='20190401'):
 
     stock_status = 'listed' if list_status is None else 'de-listed'
 
@@ -30,14 +30,12 @@ def crawl_basic(list_status=None):
                    'enname,market,exchange,curr_type,list_status,list_date,delist_date,is_hs'
         )
 
-        current_date = datetime.now().strftime('%Y%m%d')
-
         update_requests = []
         for index in df_basic.index:
             document = dict(df_basic.loc[index])
 
             document.update({
-                'update_date': current_date,
+                'update_date': update_date,
             })
 
             update_requests.append(
@@ -98,6 +96,6 @@ def crawl_basic(list_status=None):
 
 
 if __name__ == '__main__':
-    crawl_basic()
-    crawl_basic(list_status='D')
-    crawl_basic(list_status='P')
+    crawl_basic(update_date='20190401')
+    crawl_basic(list_status='D', update_date='20190401')
+    crawl_basic(list_status='P', update_date='20190401')
