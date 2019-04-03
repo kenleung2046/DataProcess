@@ -30,11 +30,11 @@ def do_task():
 
     if '0' < weekday < '6':
 
-        crawl_basic()
+        crawl_basic(update_date=current_date)
         time.sleep(3)
-        crawl_basic(list_status='D')
+        crawl_basic(list_status='D', update_date=current_date)
         time.sleep(3)
-        crawl_basic(list_status='P')
+        crawl_basic(list_status='P', update_date=current_date)
         time.sleep(3)
 
         name_his_crawler(begin_date=current_date, end_date=current_date)
