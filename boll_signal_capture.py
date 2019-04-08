@@ -30,7 +30,7 @@ class BollSignal:
 
         _n_ = 20
         _k_ = 2
-        _collection_name_ = 'Signal_Boll_N20K2'
+        _collection_name_ = 'Signal'
 
         for code in codes:
             try:
@@ -60,16 +60,19 @@ class BollSignal:
                 df_quotation['down_break'] = (df_quotation['down_delta_prev'] >= 0) & (df_quotation['down_delta'] < 0)
                 
                 df_quotation.drop(['close', 'mid', 'std', 'up', 'down', 'up_delta', 'down_delta'], 1, inplace=True)
-                
-                df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
-                
+
                 update_requests = []
                 for date in df_quotation.index:
-                    signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                    if df_quotation.loc[date]['up_break']:
+                        signal = 'up_break'
+                    elif df_quotation.loc[date]['down_break']:
+                        signal = 'down_break'
+                    else:
+                        signal = False
                     update_requests.append(
                         UpdateOne(
                             {'ts_code': code, 'trade_date': date},
-                            {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                            {'$set': {'ts_code': code, 'trade_date': date, 'signal_boll_n20k2': signal}},
                             upsert=True)
                     )
                     

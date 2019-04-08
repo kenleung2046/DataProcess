@@ -10,6 +10,7 @@ _authentication_ = 'A-Shares'
 _user_ = 'manager'
 _pwd_ = 'Kl!2#4%6'
 _database_name_ = 'A-Shares'
+_collection_name_ = 'Signal'
 _client = MongoClient(_database_ip_, _database_port_)
 db_auth = _client[_authentication_]
 db_auth.authenticate(_user_, _pwd_)
@@ -28,7 +29,6 @@ def get_ma5_signal(begin_date, end_date):
     updated_amount = 0
 
     _n_ = 5
-    _collection_name_ = 'Signal_MA_5'
 
     for code in codes:
         try:
@@ -54,15 +54,18 @@ def get_ma5_signal(begin_date, end_date):
 
             df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
 
-            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
-
             update_requests = []
             for date in df_quotation.index:
-                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                if df_quotation.loc[date]['up_break']:
+                    signal = 'up_break'
+                elif df_quotation.loc[date]['down_break']:
+                    signal = 'down_break'
+                else:
+                    signal = False
                 update_requests.append(
                     UpdateOne(
                         {'ts_code': code, 'trade_date': date},
-                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal_ma_5': signal}},
                         upsert=True)
                 )
 
@@ -131,7 +134,6 @@ def get_ma10_signal(begin_date, end_date):
     updated_amount = 0
 
     _n_ = 10
-    _collection_name_ = 'Signal_MA_10'
 
     for code in codes:
         try:
@@ -157,15 +159,18 @@ def get_ma10_signal(begin_date, end_date):
 
             df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
 
-            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
-
             update_requests = []
             for date in df_quotation.index:
-                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                if df_quotation.loc[date]['up_break']:
+                    signal = 'up_break'
+                elif df_quotation.loc[date]['down_break']:
+                    signal = 'down_break'
+                else:
+                    signal = False
                 update_requests.append(
                     UpdateOne(
                         {'ts_code': code, 'trade_date': date},
-                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal_ma_10': signal}},
                         upsert=True)
                 )
 
@@ -234,7 +239,6 @@ def get_ma20_signal(begin_date, end_date):
     updated_amount = 0
 
     _n_ = 20
-    _collection_name_ = 'Signal_MA_20'
 
     for code in codes:
         try:
@@ -260,15 +264,18 @@ def get_ma20_signal(begin_date, end_date):
 
             df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
 
-            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
-
             update_requests = []
             for date in df_quotation.index:
-                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                if df_quotation.loc[date]['up_break']:
+                    signal = 'up_break'
+                elif df_quotation.loc[date]['down_break']:
+                    signal = 'down_break'
+                else:
+                    signal = False
                 update_requests.append(
                     UpdateOne(
                         {'ts_code': code, 'trade_date': date},
-                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal_ma_20': signal}},
                         upsert=True)
                 )
 
@@ -337,7 +344,6 @@ def get_ma30_signal(begin_date, end_date):
     updated_amount = 0
 
     _n_ = 30
-    _collection_name_ = 'Signal_MA_30'
 
     for code in codes:
         try:
@@ -363,15 +369,18 @@ def get_ma30_signal(begin_date, end_date):
 
             df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
 
-            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
-
             update_requests = []
             for date in df_quotation.index:
-                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                if df_quotation.loc[date]['up_break']:
+                    signal = 'up_break'
+                elif df_quotation.loc[date]['down_break']:
+                    signal = 'down_break'
+                else:
+                    signal = False
                 update_requests.append(
                     UpdateOne(
                         {'ts_code': code, 'trade_date': date},
-                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal_ma_30': signal}},
                         upsert=True)
                 )
 
@@ -440,7 +449,6 @@ def get_ma60_signal(begin_date, end_date):
     updated_amount = 0
 
     _n_ = 60
-    _collection_name_ = 'Signal_MA_60'
 
     for code in codes:
         try:
@@ -466,15 +474,18 @@ def get_ma60_signal(begin_date, end_date):
 
             df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
 
-            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
-
             update_requests = []
             for date in df_quotation.index:
-                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                if df_quotation.loc[date]['up_break']:
+                    signal = 'up_break'
+                elif df_quotation.loc[date]['down_break']:
+                    signal = 'down_break'
+                else:
+                    signal = False
                 update_requests.append(
                     UpdateOne(
                         {'ts_code': code, 'trade_date': date},
-                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal_ma_60': signal}},
                         upsert=True)
                 )
 
@@ -543,7 +554,6 @@ def get_ma120_signal(begin_date, end_date):
     updated_amount = 0
 
     _n_ = 120
-    _collection_name_ = 'Signal_MA_120'
 
     for code in codes:
         try:
@@ -569,15 +579,18 @@ def get_ma120_signal(begin_date, end_date):
 
             df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
 
-            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
-
             update_requests = []
             for date in df_quotation.index:
-                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                if df_quotation.loc[date]['up_break']:
+                    signal = 'up_break'
+                elif df_quotation.loc[date]['down_break']:
+                    signal = 'down_break'
+                else:
+                    signal = False
                 update_requests.append(
                     UpdateOne(
                         {'ts_code': code, 'trade_date': date},
-                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal_ma_120': signal}},
                         upsert=True)
                 )
 
@@ -646,7 +659,6 @@ def get_ma240_signal(begin_date, end_date):
     updated_amount = 0
 
     _n_ = 240
-    _collection_name_ = 'Signal_MA_240'
 
     for code in codes:
         try:
@@ -672,15 +684,18 @@ def get_ma240_signal(begin_date, end_date):
 
             df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
 
-            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
-
             update_requests = []
             for date in df_quotation.index:
-                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                if df_quotation.loc[date]['up_break']:
+                    signal = 'up_break'
+                elif df_quotation.loc[date]['down_break']:
+                    signal = 'down_break'
+                else:
+                    signal = False
                 update_requests.append(
                     UpdateOne(
                         {'ts_code': code, 'trade_date': date},
-                        {'$set': {'ts_code': code, 'trade_date': date, 'signal': signal}},
+                        {'$set': {'ts_code': code, 'trade_date': date, 'signal_ma_240': signal}},
                         upsert=True)
                 )
 
@@ -738,13 +753,13 @@ def get_ma240_signal(begin_date, end_date):
 
 
 if __name__ == '__main__':
-    get_ma5_signal('20050101', '20190320')
-    get_ma10_signal('20050101', '20190320')
-    get_ma20_signal('20050101', '20190320')
-    get_ma30_signal('20050101', '20190320')
-    get_ma60_signal('20050101', '20190320')
-    get_ma120_signal('20050101', '20190320')
-    get_ma240_signal('20050101', '20190320')
+    # get_ma5_signal('20050101', '20190307')
+    # get_ma10_signal('20050101', '20190307')
+    # get_ma20_signal('20050101', '20190307')
+    # get_ma30_signal('20050101', '20190307')
+    # get_ma60_signal('20050101', '20190307')
+    # get_ma120_signal('20050101', '20190307')
+    get_ma240_signal('20050101', '20190307')
 
 
 
