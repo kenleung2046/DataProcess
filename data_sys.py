@@ -9,14 +9,8 @@ from quotation_fixing import fill_is_trading, fill_suspension_data
 from fundamental_crawler import crawl_fundamental_daily
 from adj_factor_compute import adj_factor_compute
 from boll_signal_capture import BollSignal
-from ma_signal_capture import get_ma5_signal
-from ma_signal_capture import get_ma10_signal
-from ma_signal_capture import get_ma20_signal
-from ma_signal_capture import get_ma30_signal
-from ma_signal_capture import get_ma60_signal
-from ma_signal_capture import get_ma120_signal
-from ma_signal_capture import get_ma240_signal
-from datetime import datetime
+from ma_signal_capture import get_ma_signal
+from datetime import datetime, timedelta
 import time
 
 
@@ -72,26 +66,28 @@ def do_task():
         adj_factor_compute(begin_date=current_date, end_date=current_date)
         time.sleep(3)
 
-        BollSignal().compute(begin_date='20151101', end_date=current_date)
+        before_one_and_half_year = (now_date - timedelta(days=540)).strftime('%Y%m%d')
+
+        BollSignal().compute(begin_date=before_one_and_half_year, end_date=current_date, boll_days=20, boll_k=2)
         time.sleep(3)
 
-        get_ma5_signal(begin_date='20151101', end_date=current_date)
+        get_ma_signal(begin_date=before_one_and_half_year, end_date=current_date, ma_days=5)
         time.sleep(3)
-        get_ma10_signal(begin_date='20151101', end_date=current_date)
+        get_ma_signal(begin_date=before_one_and_half_year, end_date=current_date, ma_days=10)
         time.sleep(3)
-        get_ma20_signal(begin_date='20151101', end_date=current_date)
+        get_ma_signal(begin_date=before_one_and_half_year, end_date=current_date, ma_days=20)
         time.sleep(3)
-        get_ma30_signal(begin_date='20151101', end_date=current_date)
+        get_ma_signal(begin_date=before_one_and_half_year, end_date=current_date, ma_days=30)
         time.sleep(3)
-        get_ma60_signal(begin_date='20151101', end_date=current_date)
+        get_ma_signal(begin_date=before_one_and_half_year, end_date=current_date, ma_days=60)
         time.sleep(3)
-        get_ma120_signal(begin_date='20151101', end_date=current_date)
+        get_ma_signal(begin_date=before_one_and_half_year, end_date=current_date, ma_days=120)
         time.sleep(3)
-        get_ma240_signal(begin_date='20151101', end_date=current_date)
+        get_ma_signal(begin_date=before_one_and_half_year, end_date=current_date, ma_days=240)
 
 
 if __name__ == '__main__':
-    schedule.every().day.at("18:00").do(do_task)
+    schedule.every().day.at("19:00").do(do_task)
 
     while True:
         print(datetime.now(), flush=True)
