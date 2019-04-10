@@ -35,50 +35,56 @@ def get_ma_signal(begin_date, end_date, ma_days):
                 sort=[('trade_date', ASCENDING)],
                 projection={'trade_date': True, 'close': True, '_id': False}
             )
+            quotation = [x for x in quotation_cursor]
 
-            df_quotation = DataFrame([quotation for quotation in quotation_cursor])
+            if len(quotation) is not 0:
 
-            df_quotation.set_index(['trade_date'], 1, inplace=True)
+                df_quotation = DataFrame([quotation for quotation in quotation_cursor])
 
-            df_quotation['ma'] = round(df_quotation['close'].rolling(ma_days).mean(), 5)
+                df_quotation.set_index(['trade_date'], 1, inplace=True)
 
-            df_quotation['differ'] = round(df_quotation['close'] - df_quotation['ma'], 5)
+                df_quotation['ma'] = round(df_quotation['close'].rolling(ma_days).mean(), 5)
 
-            df_quotation['differ_prev'] = df_quotation['differ'].shift(1)
+                df_quotation['differ'] = round(df_quotation['close'] - df_quotation['ma'], 5)
 
-            df_quotation['up_break'] = (df_quotation['differ_prev'] <= 0) & (df_quotation['differ'] > 0)
+                df_quotation['differ_prev'] = df_quotation['differ'].shift(1)
 
-            df_quotation['down_break'] = (df_quotation['differ_prev'] >= 0) & (df_quotation['differ'] < 0)
+                df_quotation['up_break'] = (df_quotation['differ_prev'] <= 0) & (df_quotation['differ'] > 0)
 
-            df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
+                df_quotation['down_break'] = (df_quotation['differ_prev'] >= 0) & (df_quotation['differ'] < 0)
 
-            df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
+                df_quotation.drop(['close', 'ma', 'differ', 'differ_prev'], 1, inplace=True)
 
-            signal_name = 'signal_ma'
-            if ma_days == 5:
-                signal_name = 'signal_ma_5'
-            elif ma_days == 10:
-                signal_name = 'signal_ma_10'
-            elif ma_days == 20:
-                signal_name = 'signal_ma_20'
-            elif ma_days == 30:
-                signal_name = 'signal_ma_30'
-            elif ma_days == 60:
-                signal_name = 'signal_ma_60'
-            elif ma_days == 120:
-                signal_name = 'signal_ma_120'
-            elif ma_days == 240:
-                signal_name = 'signal_ma_240'
+                df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
 
-            update_requests = []
-            for date in df_quotation.index:
-                signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
-                update_requests.append(
-                    UpdateOne(
-                        {'ts_code': code, 'trade_date': date},
-                        {'$set': {'ts_code': code, 'trade_date': date, signal_name: signal}},
-                        upsert=True)
-                )
+                signal_name = 'signal_ma'
+                if ma_days == 5:
+                    signal_name = 'signal_ma_5'
+                elif ma_days == 10:
+                    signal_name = 'signal_ma_10'
+                elif ma_days == 20:
+                    signal_name = 'signal_ma_20'
+                elif ma_days == 30:
+                    signal_name = 'signal_ma_30'
+                elif ma_days == 60:
+                    signal_name = 'signal_ma_60'
+                elif ma_days == 120:
+                    signal_name = 'signal_ma_120'
+                elif ma_days == 240:
+                    signal_name = 'signal_ma_240'
+
+                update_requests = []
+                for date in df_quotation.index:
+                    signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
+                    update_requests.append(
+                        UpdateOne(
+                            {'ts_code': code, 'trade_date': date},
+                            {'$set': {'ts_code': code, 'trade_date': date, signal_name: signal}},
+                            upsert=True)
+                    )
+
+            else:
+                update_requests = []
 
             if len(update_requests) > 0:
                 update_result = db[_collection_name_].bulk_write(
