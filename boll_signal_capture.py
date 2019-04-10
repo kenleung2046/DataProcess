@@ -17,7 +17,7 @@ class BollSignal:
         db_auth.authenticate(_user_, _pwd_)
         self.db = _client[_database_name_]
         
-    def compute(self, begin_date, end_date):
+    def compute(self, begin_date, end_date, boll_days, boll_k):
         code_cursor = self.db.Stock_Basic.find(
             {'list_status': 'L',
              'list_date': {'$lte': end_date}},
@@ -28,8 +28,6 @@ class BollSignal:
         inserted_amount = 0
         updated_amount = 0
 
-        _n_ = 20
-        _k_ = 2
         _collection_name_ = 'Signal'
 
         for code in codes:
@@ -44,35 +42,36 @@ class BollSignal:
                 
                 df_quotation.set_index(['trade_date'], 1, inplace=True)
                 
-                df_quotation['mid'] = df_quotation['close'].rolling(_n_).mean()
+                df_quotation['mid'] = round(df_quotation['close'].rolling(boll_days).mean(), 5)
                 
-                df_quotation['std'] = df_quotation['close'].rolling(_n_).std()
+                df_quotation['std'] = round(df_quotation['close'].rolling(boll_days).std(), 5)
                 
-                df_quotation['up'] = df_quotation['mid'] + _k_ * df_quotation['std']
-                df_quotation['down'] = df_quotation['mid'] - _k_ * df_quotation['std']
+                df_quotation['up'] = round(df_quotation['mid'] + boll_k * df_quotation['std'], 5)
+                df_quotation['down'] = round(df_quotation['mid'] - boll_k * df_quotation['std'], 5)
                 
-                df_quotation['up_delta'] = df_quotation['close'] - df_quotation['up']
+                df_quotation['up_delta'] = round(df_quotation['close'] - df_quotation['up'], 5)
                 df_quotation['up_delta_prev'] = df_quotation['up_delta'].shift(1)
                 df_quotation['up_break'] = (df_quotation['up_delta_prev'] <= 0) & (df_quotation['up_delta'] > 0)
                 
-                df_quotation['down_delta'] = df_quotation['close'] - df_quotation['down']
+                df_quotation['down_delta'] = round(df_quotation['close'] - df_quotation['down'], 5)
                 df_quotation['down_delta_prev'] = df_quotation['down_delta'].shift(1)
                 df_quotation['down_break'] = (df_quotation['down_delta_prev'] >= 0) & (df_quotation['down_delta'] < 0)
                 
                 df_quotation.drop(['close', 'mid', 'std', 'up', 'down', 'up_delta', 'down_delta'], 1, inplace=True)
 
+                df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
+
+                signal_name = 'signal_boll'
+                if (boll_days == 20) & (boll_k == 2):
+                    signal_name = 'signal_boll_n20_k2'
+
                 update_requests = []
                 for date in df_quotation.index:
-                    if df_quotation.loc[date]['up_break']:
-                        signal = 'up_break'
-                    elif df_quotation.loc[date]['down_break']:
-                        signal = 'down_break'
-                    else:
-                        signal = False
+                    signal = 'up_break' if df_quotation.loc[date]['up_break'] else 'down_break'
                     update_requests.append(
                         UpdateOne(
                             {'ts_code': code, 'trade_date': date},
-                            {'$set': {'ts_code': code, 'trade_date': date, 'signal_boll_n20k2': signal}},
+                            {'$set': {'ts_code': code, 'trade_date': date, signal_name: signal}},
                             upsert=True)
                     )
                     
@@ -83,8 +82,8 @@ class BollSignal:
                     )
 
                     print(
-                        'Compute and save %s boll signal from %s to %s, %s, %s, inserted: %4d, modified: %4d' %
-                        (code, begin_date, end_date, _collection_name_, datetime.now(),
+                        'Compute %s Boll_N%s_K%s signal from %s to %s, %s, %s, inserted: %4d, modified: %4d' %
+                        (code, boll_days, boll_k, begin_date, end_date, _collection_name_, datetime.now(),
                          update_result.upserted_count, update_result.modified_count),
                         flush=True
                     )
@@ -94,8 +93,8 @@ class BollSignal:
 
             except:
                 print(
-                    'Error occurs when compute and save boll signal from %s to %s, %s, %s, at position: %s' %
-                    (begin_date, end_date, _collection_name_, datetime.now(), code),
+                    'Error occurs when compute Boll_N%s_K%s signal from %s to %s, %s, %s, at position: %s' %
+                    (boll_days, boll_k, begin_date, end_date, _collection_name_, datetime.now(), code),
                     flush=True
                 )
 
@@ -106,8 +105,8 @@ class BollSignal:
                 content = _log.read()
                 _log.seek(0, 0)
                 _log.write(
-                    'Error occurs when compute and save boll signal from %s to %s, %s, %s, at position: %s \n \n' %
-                    (begin_date, end_date, _collection_name_, datetime.now(), code) + content
+                    'Error occurs when compute Boll_N%s_K%s signal from %s to %s, %s, %s, at position: %s \n \n' %
+                    (boll_days, boll_k, begin_date, end_date, _collection_name_, datetime.now(), code) + content
                 )
                 traceback.print_exc(file=_log)
                 _log.flush()
@@ -121,8 +120,8 @@ class BollSignal:
         content = _log.read()
         _log.seek(0, 0)
         _log.write(
-            'Compute and save boll signal from %s to %s, %s, %s, inserted: %4d, modified: %4d \n \n' %
-            (begin_date, end_date, _collection_name_, datetime.now(),
+            'Compute Boll_N%s_K%s signal from %s to %s, %s, %s, inserted: %4d, modified: %4d \n \n' %
+            (boll_days, boll_k, begin_date, end_date, _collection_name_, datetime.now(),
              inserted_amount, updated_amount) + content
         )
         _log.flush()
@@ -130,4 +129,4 @@ class BollSignal:
 
 
 if __name__ == '__main__':
-    BollSignal().compute('20050101', '20190307')
+    BollSignal().compute('20050101', '20190307', 20, 2)
