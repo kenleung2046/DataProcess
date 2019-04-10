@@ -104,7 +104,7 @@ def get_ma_signal(begin_date, end_date, ma_days):
             )
 
             _log = open(
-                "/root/DataProcess/log/log_save_compute_"
+                "/root/DataProcess/log/log_compute_"
                 + _collection_name_ + ".txt", 'r+'
             )
             content = _log.read()
@@ -119,7 +119,7 @@ def get_ma_signal(begin_date, end_date, ma_days):
 
     print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
     _log = open(
-        "/root/DataProcess/log/log_save_compute_"
+        "/root/DataProcess/log/log_compute_"
         + _collection_name_ + ".txt", 'r+'
     )
     content = _log.read()

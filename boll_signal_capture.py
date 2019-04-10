@@ -99,7 +99,7 @@ class BollSignal:
                 )
 
                 _log = open(
-                    "/root/DataProcess/log/log_save_compute_"
+                    "/root/DataProcess/log/log_compute_"
                     + _collection_name_ + ".txt", 'r+'
                 )
                 content = _log.read()
@@ -114,7 +114,7 @@ class BollSignal:
 
         print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
         _log = open(
-            "/root/DataProcess/log/log_save_compute_"
+            "/root/DataProcess/log/log_compute_"
             + _collection_name_ + ".txt", 'r+'
         )
         content = _log.read()
