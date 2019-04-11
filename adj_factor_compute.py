@@ -42,7 +42,7 @@ def adj_factor_compute(begin_date, end_date):
             code = quotation['ts_code']
             close = quotation['close']
             hfq_close = db.Quotation_Daily_hfq.find_one({'trade_date': date, 'ts_code': code})['close']
-            adj_factor = hfq_close/close
+            adj_factor = round(hfq_close / close, 3)
             document = {
                 'trade_date': date,
                 'ts_code': code,
