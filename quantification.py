@@ -76,7 +76,8 @@ def atr_compute(begin_date, end_date):
                     update_requests.append(
                         UpdateOne(
                             {'ts_code': code, 'trade_date': date},
-                            {'$set': {'ts_code': code, 'trade_date': date, 'TR': tr_adj_factor, 'ATR': atr_adj_factor}},
+                            {'$set': {'ts_code': code, 'trade_date': date,
+                                      'adj_TR': tr_adj_factor, 'adj_ATR': atr_adj_factor}},
                             upsert=True)
                     )
 
@@ -92,7 +93,7 @@ def atr_compute(begin_date, end_date):
                 )
 
                 print(
-                    'Compute %s daily ATR from %s to %s, %s, %s, inserted: %4d, modified: %4d' %
+                    'Compute %s daily adj_TR and adj_ATR from %s to %s, %s, %s, inserted: %4d, modified: %4d' %
                     (code, begin_date, end_date, _collection_name_, datetime.now(),
                      update_result.upserted_count, update_result.modified_count),
                     flush=True
@@ -103,7 +104,7 @@ def atr_compute(begin_date, end_date):
 
         except:
             print(
-                'Error occurs when compute daily ATR from %s to %s, %s, %s, at position: %s' %
+                'Error occurs when compute daily adj_TR and adj_ATR from %s to %s, %s, %s, at position: %s' %
                 (begin_date, end_date, _collection_name_, datetime.now(), code),
                 flush=True
             )
@@ -115,7 +116,7 @@ def atr_compute(begin_date, end_date):
             content = _log.read()
             _log.seek(0, 0)
             _log.write(
-                'Error occurs when compute daily ATR from %s to %s, %s, %s, at position: %s \n \n' %
+                'Error occurs when compute daily adj_TR and adj_ATR from %s to %s, %s, %s, at position: %s \n \n' %
                 (begin_date, end_date, _collection_name_, datetime.now(), code) + content
             )
             traceback.print_exc(file=_log)
@@ -130,7 +131,7 @@ def atr_compute(begin_date, end_date):
     content = _log.read()
     _log.seek(0, 0)
     _log.write(
-        'Compute daily ATR from %s to %s, %s, %s, inserted: %4d, modified: %4d \n \n' %
+        'Compute daily adj_TR and adj_ATR from %s to %s, %s, %s, inserted: %4d, modified: %4d \n \n' %
         (begin_date, end_date, _collection_name_, datetime.now(),
          inserted_amount, updated_amount) + content
     )
