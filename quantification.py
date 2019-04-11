@@ -110,7 +110,7 @@ def atr_compute(begin_date, end_date):
             )
 
             _log = open(
-                "/Users/Kenny2046/AxeCapital/DataProcess/log/log_compute_"
+                "/root/DataProcess/log/log_compute_"
                 + _collection_name_ + ".txt", 'r+'
             )
             content = _log.read()
@@ -125,7 +125,7 @@ def atr_compute(begin_date, end_date):
 
     print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
     _log = open(
-        "/Users/Kenny2046/AxeCapital/DataProcess/log/log_compute_"
+        "/root/DataProcess/log/log_compute_"
         + _collection_name_ + ".txt", 'r+'
     )
     content = _log.read()
