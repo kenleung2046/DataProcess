@@ -106,7 +106,7 @@ class BollSignal:
                 )
 
                 _log = open(
-                    "/Users/Kenny2046/AxeCapital/DataProcess/log/log_compute_"
+                    "/root/DataProcess/log/log_compute_"
                     + _collection_name_ + ".txt", 'r+'
                 )
                 content = _log.read()
@@ -121,7 +121,7 @@ class BollSignal:
 
         print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
         _log = open(
-            "/Users/Kenny2046/AxeCapital/DataProcess/log/log_compute_"
+            "/root/DataProcess/log/log_compute_"
             + _collection_name_ + ".txt", 'r+'
         )
         content = _log.read()
@@ -136,4 +136,4 @@ class BollSignal:
 
 
 if __name__ == '__main__':
-    BollSignal().compute('20050101', '20190307', 20, 2)
+    BollSignal().compute('20050101', '20190409', 20, 2)
