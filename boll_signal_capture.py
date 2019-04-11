@@ -37,11 +37,11 @@ class BollSignal:
                     sort=[('trade_date', ASCENDING)],
                     projection={'trade_date': True, 'close': True, '_id': False}
                 )
-                quotation = [x for x in quotation_cursor]
+                quotation_list = [x for x in quotation_cursor]
 
-                if len(quotation) is not 0:
+                if len(quotation_list) is not 0:
                 
-                    df_quotation = DataFrame([quotation for quotation in quotation_cursor])
+                    df_quotation = DataFrame([quotation for quotation in quotation_list])
 
                     df_quotation.set_index(['trade_date'], 1, inplace=True)
 
@@ -60,7 +60,8 @@ class BollSignal:
                     df_quotation['down_delta_prev'] = df_quotation['down_delta'].shift(1)
                     df_quotation['down_break'] = (df_quotation['down_delta_prev'] >= 0) & (df_quotation['down_delta'] < 0)
 
-                    df_quotation.drop(['close', 'mid', 'std', 'up', 'down', 'up_delta', 'down_delta'], 1, inplace=True)
+                    df_quotation.drop(['close', 'mid', 'std', 'up', 'down', 'up_delta', 'down_delta', 'up_delta_prev',
+                                       'down_delta_prev'], 1, inplace=True)
 
                     df_quotation = df_quotation[df_quotation['up_break'] | df_quotation['down_break']]
 
@@ -105,7 +106,7 @@ class BollSignal:
                 )
 
                 _log = open(
-                    "/root/DataProcess/log/log_compute_"
+                    "/Users/Kenny2046/AxeCapital/DataProcess/log/log_compute_"
                     + _collection_name_ + ".txt", 'r+'
                 )
                 content = _log.read()
@@ -120,7 +121,7 @@ class BollSignal:
 
         print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
         _log = open(
-            "/root/DataProcess/log/log_compute_"
+            "/Users/Kenny2046/AxeCapital/DataProcess/log/log_compute_"
             + _collection_name_ + ".txt", 'r+'
         )
         content = _log.read()

@@ -35,11 +35,11 @@ def get_ma_signal(begin_date, end_date, ma_days):
                 sort=[('trade_date', ASCENDING)],
                 projection={'trade_date': True, 'close': True, '_id': False}
             )
-            quotation = [x for x in quotation_cursor]
+            quotation_list = [x for x in quotation_cursor]
 
-            if len(quotation) is not 0:
+            if len(quotation_list) is not 0:
 
-                df_quotation = DataFrame([quotation for quotation in quotation_cursor])
+                df_quotation = DataFrame([quotation for quotation in quotation_list])
 
                 df_quotation.set_index(['trade_date'], 1, inplace=True)
 
@@ -110,7 +110,7 @@ def get_ma_signal(begin_date, end_date, ma_days):
             )
 
             _log = open(
-                "/root/DataProcess/log/log_compute_"
+                "/Users/Kenny2046/AxeCapital/DataProcess/log/log_compute_"
                 + _collection_name_ + ".txt", 'r+'
             )
             content = _log.read()
@@ -125,7 +125,7 @@ def get_ma_signal(begin_date, end_date, ma_days):
 
     print('total inserted amount is %s, total modified amount is %s' % (inserted_amount, updated_amount))
     _log = open(
-        "/root/DataProcess/log/log_compute_"
+        "/Users/Kenny2046/AxeCapital/DataProcess/log/log_compute_"
         + _collection_name_ + ".txt", 'r+'
     )
     content = _log.read()
@@ -141,9 +141,9 @@ def get_ma_signal(begin_date, end_date, ma_days):
 
 if __name__ == '__main__':
     get_ma_signal('20050101', '20190307', 5)
-    # get_ma_signal('20050101', '20190307', 10)
-    # get_ma_signal('20050101', '20190307', 20)
-    # get_ma_signal('20050101', '20190307', 30)
-    # get_ma_signal('20050101', '20190307', 60)
-    # get_ma_signal('20050101', '20190307', 120)
-    # get_ma_signal('20050101', '20190307', 240)
+    get_ma_signal('20050101', '20190307', 10)
+    get_ma_signal('20050101', '20190307', 20)
+    get_ma_signal('20050101', '20190307', 30)
+    get_ma_signal('20050101', '20190307', 60)
+    get_ma_signal('20050101', '20190307', 120)
+    get_ma_signal('20050101', '20190307', 240)
