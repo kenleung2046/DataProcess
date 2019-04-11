@@ -89,4 +89,4 @@ def adj_factor_compute(begin_date, end_date):
 
 
 if __name__ == '__main__':
-    adj_factor_compute('20050101', '20190314')
+    adj_factor_compute('20050101', '20190307')
