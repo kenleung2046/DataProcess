@@ -1,2 +1,0 @@
-Compute daily ATR from 20050101 to 20190307, Quantification, 2019-04-11 20:47:40.365712, inserted: 7073836, modified:    0 
- 

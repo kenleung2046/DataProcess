@@ -1,4 +1,5 @@
 import schedule
+from pymongo import MongoClient
 from calendar_crawler import crawl_calender
 from basic_crawler import crawl_basic
 from name_crawler import name_his_crawler
@@ -15,15 +16,30 @@ from datetime import datetime, timedelta
 import time
 
 
+_database_ip_ = '127.0.0.1'
+_database_port_ = 27017
+_authentication_ = 'A-Shares'
+_user_ = 'manager'
+_pwd_ = 'Kl!2#4%6'
+_database_name_ = 'A-Shares'
+_collection_name_ = 'Calendar'
+_client = MongoClient(_database_ip_, _database_port_)
+db_auth = _client[_authentication_]
+db_auth.authenticate(_user_, _pwd_)
+db = _client[_database_name_]
+
+
 def do_task():
     now_date = datetime.now()
-    weekday = now_date.strftime('%w')
 
     current_date = now_date.strftime('%Y%m%d')
 
     crawl_calender(begin_date=current_date, end_date=current_date)
+    time.sleep(30)
 
-    if '0' < weekday < '6':
+    market_open = db.Calendar.find_one({'cal_date': current_date, 'is_open': True})
+
+    if market_open is not None:
 
         crawl_basic(update_date=current_date)
         time.sleep(3)
@@ -88,6 +104,9 @@ def do_task():
         time.sleep(3)
 
         atr_compute_daily(current_date=current_date)
+
+    else:
+        pass
 
 
 if __name__ == '__main__':
