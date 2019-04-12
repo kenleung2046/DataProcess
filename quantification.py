@@ -45,6 +45,7 @@ def atr_compute(begin_date, end_date):
             )
             adj_factor_list = [factor for factor in adj_factor_cursor]
 
+            update_requests = []
             if len(quotation) and len(adj_factor_list) is not 0:
 
                 df_adj_factor = DataFrame([adj for adj in adj_factor_list])
@@ -60,7 +61,6 @@ def atr_compute(begin_date, end_date):
 
                 last_atr = round(df_quotation['TR'].loc[0:19].mean(), 5)
 
-                update_requests = []
                 for index in range(20, len(df_quotation)):
 
                     tr = df_quotation.loc[index]['TR']
@@ -84,7 +84,7 @@ def atr_compute(begin_date, end_date):
                     last_atr = atr
 
             else:
-                update_requests = []
+                pass
 
             if len(update_requests) > 0:
                 update_result = db[_collection_name_].bulk_write(
@@ -186,7 +186,7 @@ def atr_compute_daily(current_date):
                 )
 
             else:
-                update_requests = []
+                pass
 
         except:
             print(
