@@ -10,6 +10,7 @@ from fundamental_crawler import crawl_fundamental_daily
 from adj_factor_compute import adj_factor_compute
 from boll_signal_capture import BollSignal
 from ma_signal_capture import get_ma_signal
+from quantification import atr_compute_daily
 from datetime import datetime, timedelta
 import time
 
@@ -84,6 +85,9 @@ def do_task():
         get_ma_signal(begin_date=before_one_and_half_year, end_date=current_date, ma_days=120)
         time.sleep(3)
         get_ma_signal(begin_date=before_one_and_half_year, end_date=current_date, ma_days=240)
+        time.sleep(3)
+
+        atr_compute_daily(current_date=current_date)
 
 
 if __name__ == '__main__':
