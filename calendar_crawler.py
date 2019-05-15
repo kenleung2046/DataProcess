@@ -12,7 +12,7 @@ _authentication_ = 'A-Shares'
 _user_ = 'manager'
 _pwd_ = 'Kl!2#4%6'
 _database_name_ = 'A-Shares'
-_collection_name_ = 'Calendar'
+_collection_name_ = 'calendar'
 _client = MongoClient(_database_ip_, _database_port_)
 db_auth = _client[_authentication_]
 db_auth.authenticate(_user_, _pwd_)

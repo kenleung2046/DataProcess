@@ -12,7 +12,7 @@ _authentication_ = 'A-Shares'
 _user_ = 'manager'
 _pwd_ = 'Kl!2#4%6'
 _database_name_ = 'A-Shares'
-_collection_name_ = 'Suspension'
+_collection_name_ = 'suspension'
 _client = MongoClient(_database_ip_, _database_port_)
 db_auth = _client[_authentication_]
 db_auth.authenticate(_user_, _pwd_)
@@ -20,7 +20,7 @@ db = _client[_database_name_]
 
 
 def crawl_suspension(begin_date, end_date):
-    calendar_cursor = db.Calendar.find(
+    calendar_cursor = db.calendar.find(
         {
             'cal_date': {'$gte': begin_date, '$lte': end_date},
             'is_open': True

@@ -15,7 +15,7 @@ _authentication_ = 'A-Shares'
 _user_ = 'manager'
 _pwd_ = 'Kl!2#4%6'
 _database_name_ = 'A-Shares'
-_collection_name_ = 'Fundamental'
+_collection_name_ = 'fundamental'
 _client = MongoClient(_database_ip_, _database_port_)
 db_auth = _client[_authentication_]
 db_auth.authenticate(_user_, _pwd_)
@@ -23,7 +23,7 @@ db = _client[_database_name_]
 
 
 def crawl_fundamental_daily(begin_date, end_date):
-    basic_cursor = db.Stock_Basic.find(
+    basic_cursor = db.stock_basic.find(
         {'list_status': 'L',
          'list_date': {'$lte': end_date}},
         sort=[('ts_code', ASCENDING)],

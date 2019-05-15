@@ -21,7 +21,7 @@ db = _client[_database_name_]
 
 
 def crawl_quotation_daily(begin_date, end_date, adj=None):
-    basic_cursor = db.Stock_Basic.find(
+    basic_cursor = db.stock_basic.find(
         {'list_status': 'L',
          'list_date': {'$lte': end_date}},
         sort=[('ts_code', ASCENDING)],
@@ -32,7 +32,7 @@ def crawl_quotation_daily(begin_date, end_date, adj=None):
     inserted_amount = 0
     updated_amount = 0
 
-    _collection_name_ = 'Quotation_Daily' if adj is None else 'Quotation_Daily_' + adj
+    _collection_name_ = 'quotation_daily' if adj is None else 'quotation_daily_' + adj
 
     # 网上调取数据次数控制
     request_api_times = 0

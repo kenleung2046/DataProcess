@@ -18,7 +18,7 @@ class BollSignal:
         self.db = _client[_database_name_]
         
     def compute(self, begin_date, end_date, boll_days, boll_k):
-        code_cursor = self.db.Stock_Basic.find(
+        code_cursor = self.db.stock_basic.find(
             {'list_status': 'L',
              'list_date': {'$lte': end_date}},
             projection={'ts_code': True, '_id': False}
@@ -28,11 +28,11 @@ class BollSignal:
         inserted_amount = 0
         updated_amount = 0
 
-        _collection_name_ = 'Signal'
+        _collection_name_ = 'signal'
 
         for code in codes:
             try:
-                quotation_cursor = self.db.Quotation_Daily_hfq.find(
+                quotation_cursor = self.db.quotation_daily_hfq.find(
                     {'ts_code': code, 'trade_date': {'$gte': begin_date, '$lte': end_date}, 'is_trading': True},
                     sort=[('trade_date', ASCENDING)],
                     projection={'trade_date': True, 'close': True, '_id': False}

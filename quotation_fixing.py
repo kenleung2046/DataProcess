@@ -18,7 +18,7 @@ db = _client[_database_name_]
 
 
 def fill_is_trading(begin_date, end_date, adj=None):
-    calendar_cursor = db.Calendar.find(
+    calendar_cursor = db.calendar.find(
         {
             'cal_date': {'$gte': begin_date, '$lte': end_date},
             'is_open': True
@@ -30,7 +30,7 @@ def fill_is_trading(begin_date, end_date, adj=None):
 
     updated_amount = 0
 
-    _collection_name_ = 'Quotation_Daily' if adj is None else 'Quotation_Daily_' + adj
+    _collection_name_ = 'quotation_daily' if adj is None else 'quotation_daily_' + adj
 
     for date in dates:
         quotation_cursor = db[_collection_name_].find(
@@ -83,14 +83,14 @@ def fill_is_trading(begin_date, end_date, adj=None):
 
 
 def fill_suspension_data(begin_date, end_date, adj=None):
-    basic_cursor = db.Stock_Basic.find(
+    basic_cursor = db.stock_basic.find(
         {},
         sort=[('ts_code', ASCENDING)],
         projection={'ts_code': True, 'list_date': True, '_id': False}
     )
     basics = [basic for basic in basic_cursor]
 
-    calendar_cursor = db.Calendar.find(
+    calendar_cursor = db.calendar.find(
         {
             'cal_date': {'$gte': begin_date, '$lte': end_date},
             'is_open': True
@@ -103,7 +103,7 @@ def fill_suspension_data(begin_date, end_date, adj=None):
     inserted_amount = 0
     updated_amount = 0
 
-    _collection_name_ = 'Quotation_Daily' if adj is None else 'Quotation_Daily_' + adj
+    _collection_name_ = 'quotation_daily' if adj is None else 'quotation_daily_' + adj
 
     code_last_trading_close_dict = dict()
     for date in dates:

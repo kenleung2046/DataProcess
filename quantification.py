@@ -10,7 +10,7 @@ _authentication_ = 'A-Shares'
 _user_ = 'manager'
 _pwd_ = 'Kl!2#4%6'
 _database_name_ = 'A-Shares'
-_collection_name_ = 'Quantification'
+_collection_name_ = 'quantification'
 _client = MongoClient(_database_ip_, _database_port_)
 db_auth = _client[_authentication_]
 db_auth.authenticate(_user_, _pwd_)
@@ -18,7 +18,7 @@ db = _client[_database_name_]
 
 
 def atr_compute(begin_date, end_date):
-    code_cursor = db.Stock_Basic.find(
+    code_cursor = db.stock_basic.find(
         {'list_status': 'L',
          'list_date': {'$lte': end_date}},
         projection={'ts_code': True, '_id': False}
@@ -30,7 +30,7 @@ def atr_compute(begin_date, end_date):
 
     for code in codes:
         try:
-            quotation_cursor = db.Quotation_Daily_hfq.find(
+            quotation_cursor = db.quotation_daily_hfq.find(
                 {'ts_code': code, 'trade_date': {'$gte': begin_date, '$lte': end_date}, 'is_trading': True},
                 sort=[('trade_date', ASCENDING)],
                 projection={'trade_date': True, 'close': True, 'high': True, 'low': True, 'pre_close': True,
@@ -38,7 +38,7 @@ def atr_compute(begin_date, end_date):
             )
             quotation = [x for x in quotation_cursor]
 
-            adj_factor_cursor = db.Adj_Factor.find(
+            adj_factor_cursor = db.adj_factor.find(
                 {'ts_code': code, 'trade_date': {'$gte': begin_date, '$lte': end_date}},
                 sort=[('trade_date', ASCENDING)],
                 projection={'trade_date': True, 'adj_factor': True, '_id': False}
@@ -140,14 +140,14 @@ def atr_compute(begin_date, end_date):
 
 
 def atr_compute_daily(current_date):
-    code_cursor = db.Stock_Basic.find(
+    code_cursor = db.stock_basic.find(
         {'list_status': 'L',
          'list_date': {'$lte': current_date}},
         projection={'ts_code': True, '_id': False}
     )
     codes = [code['ts_code'] for code in code_cursor]
 
-    calendar_cursor = db.Calendar.find(
+    calendar_cursor = db.calendar.find(
         {'cal_date': {'$gte': '20190101', '$lte': current_date}, 'is_open': True},
         sort=[('cal_date', ASCENDING)],
         projection={'cal_date': True, '_id': False},
@@ -159,14 +159,14 @@ def atr_compute_daily(current_date):
     update_requests = []
     for code in codes:
         try:
-            quotation = db.Quotation_Daily_hfq.find_one(
+            quotation = db.quotation_daily_hfq.find_one(
                 {'ts_code': code, 'trade_date': current_date, 'is_trading': True}
             )
-            adj_factor = db.Adj_Factor.find_one(
+            adj_factor = db.adj_factor.find_one(
                 {'ts_code': code, 'trade_date': current_date}
             )
             last_date = df_calendar['cal_date'].iloc[-2]
-            last_atr = db.Quantification.find_one({'ts_code': code, 'trade_date': last_date})
+            last_atr = db.quantification.find_one({'ts_code': code, 'trade_date': last_date})
 
             if quotation and adj_factor and last_atr is not None:
 

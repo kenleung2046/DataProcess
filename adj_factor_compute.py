@@ -8,7 +8,7 @@ _authentication_ = 'A-Shares'
 _user_ = 'manager'
 _pwd_ = 'Kl!2#4%6'
 _database_name_ = 'A-Shares'
-_collection_name_ = 'Adj_Factor'
+_collection_name_ = 'adj_factor'
 _client = MongoClient(_database_ip_, _database_port_)
 db_auth = _client[_authentication_]
 db_auth.authenticate(_user_, _pwd_)
@@ -16,7 +16,7 @@ db = _client[_database_name_]
 
 
 def adj_factor_compute(begin_date, end_date):
-    calendar_cursor = db.Calendar.find(
+    calendar_cursor = db.calendar.find(
         {
             'cal_date': {'$gte': begin_date, '$lte': end_date},
             'is_open': True
@@ -30,7 +30,7 @@ def adj_factor_compute(begin_date, end_date):
     updated_amount = 0
 
     for date in dates:
-        quotation_cursor = db.Quotation_Daily.find(
+        quotation_cursor = db.quotation_daily.find(
             {'trade_date': date},
             sort=[('ts_code', ASCENDING)],
             projection={'ts_code': True, 'close': True, '_id': False},
@@ -41,7 +41,7 @@ def adj_factor_compute(begin_date, end_date):
         for quotation in quotation_cursor:
             code = quotation['ts_code']
             close = quotation['close']
-            hfq_close = db.Quotation_Daily_hfq.find_one({'trade_date': date, 'ts_code': code})['close']
+            hfq_close = db.quotation_daily_hfq.find_one({'trade_date': date, 'ts_code': code})['close']
             adj_factor = round(hfq_close / close, 3)
             document = {
                 'trade_date': date,

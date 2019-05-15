@@ -10,11 +10,11 @@ api = ts.pro_api(_token_)
 
 _database_ip_ = '127.0.0.1'
 _database_port_ = 27017
-_authentication_ = 'admin'
-_user_ = 'CIO'
-_pwd_ = 'kENNY@0$6'
+_authentication_ = 'A-Shares'
+_user_ = 'manager'
+_pwd_ = 'Kl!2#4%6'
 _database_name_ = 'A-Shares'
-_collection_name_ = 'Business'
+_collection_name_ = 'business'
 _client = MongoClient(_database_ip_, _database_port_)
 db_auth = _client[_authentication_]
 db_auth.authenticate(_user_, _pwd_)
@@ -22,7 +22,7 @@ db = _client[_database_name_]
 
 
 def crawl_business(end_date):
-    basic_cursor = db.Stock_Basic.find(
+    basic_cursor = db.stock_basic.find(
         {'list_status': 'L',
          'list_date': {'$lte': end_date}},
         sort=[('ts_code', ASCENDING)],
