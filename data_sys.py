@@ -2,7 +2,6 @@ import schedule
 from pymongo import MongoClient
 from calendar_crawler import crawl_calender
 from basic_crawler import crawl_basic
-from name_crawler import name_his_crawler
 from suspension_crawler import crawl_suspension
 from index_crawler import crawl_index_daily
 from quotation_crawler import crawl_quotation_daily
@@ -46,9 +45,6 @@ def do_task():
         crawl_basic(list_status='D', update_date=current_date)
         time.sleep(3)
         crawl_basic(list_status='P', update_date=current_date)
-        time.sleep(3)
-
-        name_his_crawler(begin_date=current_date, end_date=current_date)
         time.sleep(3)
 
         crawl_suspension(begin_date=current_date, end_date=current_date)
